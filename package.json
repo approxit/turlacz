@@ -10,10 +10,10 @@
 		"compile:ts": "tsc",
 		"prestart": "npm run compile",
 		"start": "node --experimental-modules --es-module-specifier-resolution=node dist/index.js",
-		"pretest": "npm run compile",
 		"format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
-		"test": "mocha --recursive test || echo.",
-		"clean": "rimraf build"
+		"pretests": "npm run compile",
+		"tests": "mocha --recursive tests/",
+		"clean": "rimraf dist"
 	},
 	"devDependencies": {
 		"@discordjs/builders": "^0.12.0",
@@ -33,7 +33,8 @@
 	"eslintConfig": {
 		"env": {
 			"es2021": true,
-			"node": true
+			"node": true,
+			"mocha": true
 		},
 		"extends": [
 			"eslint:recommended",

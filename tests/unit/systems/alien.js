@@ -1,22 +1,26 @@
-const assert = require('assert');
-const dice = require('../../../src/dice');
-const peg$SyntaxError = require('pegjs').peg$SyntaxError;
-const system = require('../../../src/systems/alien');
+import assert from 'assert';
+import { parse, SyntaxError } from '../../../dist/adapters/pegjs/dice.cjs';
+import { alien as system } from '../../../dist/systems/alien.js';
+import { runCommonMathTests } from './common.js';
 
 describe('Alien system', () => {
+	runCommonMathTests({
+		system: system,
+	});
+
 	const basicFormulas = ['n', 's', 'N', 'S', '2s', '2n'];
 
 	basicFormulas.map(args => {
 		it(`should not parse "${args}" without explicit system name`, () => {
 			assert.throws(() => {
-				dice.parse(args);
-			}, peg$SyntaxError);
+				parse(args);
+			}, SyntaxError);
 		});
 	});
 
 	basicFormulas.map(args => {
 		it(`should parse "${args}" without errors`, () => {
-			dice.parse(args, {
+			parse(args, {
 				system: system,
 			});
 		});
@@ -52,7 +56,7 @@ describe('Alien system', () => {
 		},
 	].map(test => {
 		it(`should calculate "${test.syntax}" with mocked states of normal dice "${test.mockedRolls}" as "${test.result}"`, () => {
-			const result = dice.parse(test.syntax, {
+			const result = parse(test.syntax, {
 				mockedRolls: test.mockedRolls,
 				system: system,
 			});
@@ -95,7 +99,7 @@ describe('Alien system', () => {
 		},
 	].map(test => {
 		it(`should calculate "${test.syntax}" with mocked states of stress dice "${test.mockedRolls}" as "${test.result}"`, () => {
-			const result = dice.parse(test.syntax, {
+			const result = parse(test.syntax, {
 				mockedRolls: test.mockedRolls,
 				system: system,
 			});
@@ -156,7 +160,7 @@ describe('Alien system', () => {
 		},
 	].map(test => {
 		it(`should calculate "${test.syntax}" with mocked states of combined normal and stress dice "${test.mockedRolls}" as "-1"`, () => {
-			const result = dice.parse(test.syntax, {
+			const result = parse(test.syntax, {
 				mockedRolls: test.mockedRolls,
 				system: system,
 			});

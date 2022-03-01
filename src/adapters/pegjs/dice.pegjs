@@ -69,7 +69,7 @@ GenericDice "GenericDice" = throws:Integer? GenericDieChar dieValueRange:Generic
 		if ((dieValueRange == 20) && ((firstRoll == 20) || (firstRoll == 1))) {
 			throwRolls[0].flags = rollsFlags = firstRoll == 20;
 
-			if (options.diceExplosion) {
+			if (options['system'].diceExplosion) {
 				do {
 					roll = makeDieRoll(dieValueRange);
 					throwRolls.push({
