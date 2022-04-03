@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  bot:
+    command: npm start
+    build:
+      target: build
+    env_file:
+      - local.env
+    volumes:
+    - ./package.json:/app/package.json
+    - ./package-lock.json:/app/package-lock.json
+    - ./tsconfig.json:/app/tsconfig.json
+    - ./src/:/app/src/
+    - ./tests/:/app/tests/

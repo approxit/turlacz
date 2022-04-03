@@ -8,19 +8,20 @@ import { RzutCommand } from './rzut';
 
 export class PowtorzCommand implements Command {
 	public data = new SlashCommandBuilder()
-		.setName('powtorz')
-		.setDescription('Ponownie wykonuje Twój ostatni rzut.')
-		.addStringOption(option =>
-			option
-				.setName('komentarz')
-				.setDescription('Dodatkowy komentarz do rzutu, jeśli ma być inny niż z ostatniego rzutu.')
-		);
+	.setName('powtorz')
+	.setDescription('Ponownie wykonuje Twój ostatni rzut.')
+	.addStringOption(option =>
+		option
+		.setName('komentarz')
+		.setDescription('Dodatkowy komentarz do rzutu, jeśli ma być inny niż z ostatniego rzutu.')
+	);
 
 	constructor(
 		private channelSettingsRepository: ChannelSettingsRepository,
 		private userSettingsRepository: UserSettingsRepository,
 		private commands: Map<string, Command>
-	) {}
+	) {
+	}
 
 	execute = async (interaction: CommandInteraction<'cached'>): Promise<void> => {
 		const system = await getChannelSystemOrThrow(
@@ -48,13 +49,17 @@ export class PowtorzCommand implements Command {
 			throw new CommandError('Nie odnaleziono komendy "rzut", by wykonać ją ponownie!');
 		}
 
-		await command.roll(
-			interaction.guildId,
-			interaction.channelId,
-			interaction.user,
-			system,
-			userSettings.lastDiceOptions.formula,
-			comment || userSettings.lastDiceOptions?.comment
-		);
+		await interaction.reply({
+			embeds: [
+				await command.roll(
+					interaction.guildId,
+					interaction.channelId,
+					interaction.user,
+					system,
+					userSettings.lastDiceOptions.formula,
+					comment || userSettings.lastDiceOptions?.comment
+				)
+			]
+		});
 	};
 }

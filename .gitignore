@@ -2,3 +2,5 @@
 node_modules/
 src/adapters/pegjs/dice.cjs
 dist/
+local.env
+prod.env

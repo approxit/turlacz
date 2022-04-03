@@ -64,8 +64,9 @@ export class RzutCommand implements Command {
 		comment?: string
 	): Promise<MessageEmbed> => {
 		const rollRollOptions = {
-			diceExplosion: this.systems.get(system)?.diceExplosion,
+			system: this.systems.get(system),
 		};
+
 		let rollResult: RollResult;
 		try {
 			rollResult = parse(formula, rollRollOptions);
@@ -87,7 +88,9 @@ export class RzutCommand implements Command {
 		console.log(`Roll for "${user.username}" with "${formula} = ${rollResult.sum}"`);
 
 		const embed = new MessageEmbed();
-		embed.setAuthor(rollAuthor);
+		embed.setAuthor({
+			name: rollAuthor,
+		});
 		embed.setThumbnail(rollAvatar);
 		embed.setTitle(rollFormulaResult);
 

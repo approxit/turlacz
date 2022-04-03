@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  bot:
+    container_name: turlacz_bot
+    image: ghcr.io/approxit/turlacz
+    init: true
+    build: .
+    restart: always
+    env_file:
+      - local.env
+
+  db:
+    container_name: turlacz_db
+    image: mongo
+    restart: always
+    ports:
+    - "27017:27017"
+    volumes:
+      - db_data:/data/db
+
+volumes:
+  db_data:
