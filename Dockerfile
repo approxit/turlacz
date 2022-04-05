@@ -7,8 +7,7 @@ COPY package-lock.json .
 COPY tsconfig.json .
 COPY src/ ./src/
 
-RUN ls src -la \
-	&& npm ci \
+RUN npm ci \
     && npm run compile
 
 FROM node:16-alpine AS final

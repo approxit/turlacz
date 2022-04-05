@@ -2,10 +2,10 @@ import { MongoDbChannelSettingsRepository } from './adapters/mongodb/channel-set
 import { MongoDbUserSettingsRepository } from './adapters/mongodb/user-settings-repository';
 import { MongoClient } from 'mongodb';
 import { Command, Event, System } from './types';
-import { alien } from './systems/alien';
-import { dnd } from './systems/dnd';
-import { generic } from './systems/generic';
-import { tal } from './systems/tal';
+import { AlienSystem } from './systems/alien';
+import { DndSystem } from './systems/dnd';
+import { GenericSystem } from './systems/generic';
+import { TalSystem } from './systems/tal';
 import { Memoize } from 'typescript-memoize';
 import { ReadyEvent } from './events/ready';
 import { InteractionCreateEvent } from './events/interaction-create';
@@ -14,6 +14,7 @@ import { RzutCommand } from './commands/rzut';
 import { SesjaCommand } from './commands/sesja';
 import { UstawCommand } from './commands/ustaw';
 import { Client, Intents } from 'discord.js';
+import PegJsDiceParser from './adapters/pegjs/dice-parser.cjs';
 
 export class ApplicationContainer {
 	get mongoUri() {
@@ -49,12 +50,17 @@ export class ApplicationContainer {
 	}
 
 	@Memoize()
+	get diceParser() {
+		return PegJsDiceParser;
+	}
+
+	@Memoize()
 	get systems() {
 		return new Map<string, System>([
-			['alien', alien],
-			['dnd', dnd],
-			['generic', generic],
-			['tal', tal],
+			['alien', new AlienSystem(this.diceParser)],
+			['dnd', new DndSystem(this.diceParser)],
+			['generic', new GenericSystem(this.diceParser)],
+			['tal', new TalSystem(this.diceParser)],
 		]);
 	}
 

@@ -1,9 +1,10 @@
 import assert from 'assert';
-import { parse, SyntaxError } from '../../../dist/adapters/pegjs/dice.cjs';
-import { generic as system } from '../../../dist/systems/generic.js';
-import { runCommonMathTests } from './common.js';
+import PegJsDiceParser from '../adapters/pegjs/dice-parser.cjs';
+import { runCommonMathTests } from './common.spec';
+import { SystemConstructor } from '../types';
+import { GenericSystem } from './generic';
 
-export const runGenericDiceSyntaxTests = options => {
+export const runGenericDiceSyntaxTests = (systemType: SystemConstructor) => {
 	describe('Generic dice syntax', () => {
 		const basicFormulas = [
 			'k2',
@@ -16,31 +17,21 @@ export const runGenericDiceSyntaxTests = options => {
 			'k20',
 			'1k20',
 			'20k20',
-			'1 + 2 * (k2 - 1) / 2',
+			'1 + 2 * (k2 - 1) / 2'
 		];
 
 		basicFormulas.map(args => {
-			it(`should not parse "${args}" without explicit system name`, () => {
-				assert.throws(() => {
-					parse(args);
-				}, SyntaxError);
-			});
-		});
-
-		basicFormulas.map(args => {
 			it(`should parse "${args}" without errors`, () => {
-				parse(args, options);
+				const system = new systemType(PegJsDiceParser);
+				system.parseFormulaAndRoll(args);
 			});
 		});
 	});
 };
 
 describe('Generic system', () => {
-	const options = {
-		system: system,
-	};
-	runCommonMathTests(options);
-	runGenericDiceSyntaxTests(options);
+	runCommonMathTests(GenericSystem);
+	runGenericDiceSyntaxTests(GenericSystem);
 
 	[
 		{ syntax: 'k2', mockedRolls: [1], rollSets: [[1]], result: 1 },
@@ -58,13 +49,14 @@ describe('Generic system', () => {
 		{ syntax: 'k20', mockedRolls: [1], rollSets: [[1]], result: 1 },
 		{ syntax: 'k20', mockedRolls: [20], rollSets: [[20]], result: 20 },
 		{ syntax: 'k100', mockedRolls: [1], rollSets: [[1]], result: 1 },
-		{ syntax: 'k100', mockedRolls: [100], rollSets: [[100]], result: 100 },
+		{ syntax: 'k100', mockedRolls: [100], rollSets: [[100]], result: 100 }
 	].map(test => {
 		it(`should calculate without flags for "${test.syntax}" with mocked dice "${test.mockedRolls}" as "${test.result}"`, () => {
-			const result = parse(test.syntax, {
-				mockedRolls: test.mockedRolls,
-				system: system,
-			});
+			const system = new GenericSystem(PegJsDiceParser);
+			system.handleDieRoll = () => {
+				return Number(test.mockedRolls.shift());
+			};
+			const result = system.parseFormulaAndRoll(test.syntax);
 
 			assert.equal(result.sum, test.result);
 			assert.equal(result.flags, null);
@@ -72,6 +64,9 @@ describe('Generic system', () => {
 				result.rollSets.map(s => s.rolls.map(r => r.value)),
 				test.rollSets
 			);
+			result.rollSets.forEach(rollSet => {
+				assert.equal(rollSet.rolls.every(r => r.flags === null), true);
+			});
 		});
 	});
 });

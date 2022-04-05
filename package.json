@@ -6,13 +6,13 @@
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"compile": "npm run compile:dice && npm run compile:ts",
-		"compile:dice": "pegjs -o src/adapters/pegjs/dice.cjs src/adapters/pegjs/dice.pegjs",
+		"compile:dice": "pegjs -o src/adapters/pegjs/dice-parser.cjs src/adapters/pegjs/dice-parser.pegjs",
 		"compile:ts": "tsc",
 		"prestart": "npm run compile",
 		"start": "node --trace-deprecation --experimental-modules --es-module-specifier-resolution=node dist/index.js",
 		"format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
 		"pretests": "npm run compile",
-		"tests": "mocha --recursive tests/",
+		"tests": "mocha",
 		"clean": "rimraf dist"
 	},
 	"dependencies": {
@@ -24,6 +24,7 @@
 		"typescript-memoize": "^1.1.0"
 	},
 	"devDependencies": {
+		"@types/mocha": "^9.1.0",
 		"@typescript-eslint/eslint-plugin": "^5.12.0",
 		"@typescript-eslint/parser": "^5.12.0",
 		"eslint": "^8.9.0",
@@ -62,5 +63,12 @@
 		"arrowParens": "avoid",
 		"useTabs": true,
 		"tabWidth": 4
+	},
+	"mocha": {
+		"node-option": [
+			"experimental-modules",
+			"es-module-specifier-resolution=node"
+		],
+		"spec": "dist/**/*.spec.js"
 	}
 }
