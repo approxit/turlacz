@@ -7,15 +7,11 @@ services:
     init: true
     build: .
     restart: always
-    env_file:
-      - local.env
 
   db:
     container_name: turlacz_db
-    image: mongo
+    image: mongo:4
     restart: always
-    ports:
-    - "27017:27017"
     volumes:
       - db_data:/data/db
 

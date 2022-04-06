@@ -3,38 +3,41 @@ import { Command, System } from '../types';
 import { CommandInteraction } from 'discord.js';
 import { CommandError } from '../common';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { getTurlaczUser } from './utils';
 
 export class SesjaCommand implements Command {
 	public get data() {
 		return new SlashCommandBuilder()
-			.setName('sesja')
-			.setDescription(
-				'Zmienia ustawienia Turlacza dla aktualnego kanału. Użyj bez argumentów, by wyświetlić obecny stan.'
-			)
-			.addStringOption(option => {
-				option
-					.setName('system')
-					.setDescription('System RPG, który będzie aktywny na kanale. Podaj "-" aby usunąć.');
+		.setName('sesja')
+		.setDescription(
+			'Zmienia ustawienia Turlacza dla aktualnego kanału. Użyj bez argumentów, by wyświetlić obecny stan.'
+		)
+		.addStringOption(option => {
+			option
+			.setName('system')
+			.setDescription('System RPG, który będzie aktywny na kanale. Podaj "-" aby usunąć.');
 
-				for (const [systemCode, system] of this.systems) {
-					option.addChoice(system.name, systemCode);
-				}
+			for (const [systemCode, system] of this.systems) {
+				option.addChoice(system.name, systemCode);
+			}
 
-				option.addChoice('-', '-');
-				return option;
-			});
+			option.addChoice('-', '-');
+			return option;
+		});
 	}
 
-	constructor(private channelSettingsRepository: ChannelSettingsRepository, private systems: Map<string, System>) {}
+	constructor(private channelSettingsRepository: ChannelSettingsRepository, private systems: Map<string, System>) {
+	}
 
 	execute = async (interaction: CommandInteraction<'cached'>): Promise<void> => {
 		const responses = [];
 		const system = interaction.options.getString('system') ?? undefined;
+		const user = getTurlaczUser(interaction);
 
 		if (system !== undefined) {
 			if (system !== '-') {
 				await this.channelSettingsRepository.updateChannelSettings(interaction.guildId, interaction.channelId, {
-					system,
+					system
 				});
 
 				const selectedSystem = this.systems.get(system);
@@ -42,14 +45,15 @@ export class SesjaCommand implements Command {
 					throw new CommandError(`Nie odnaleziono systemu "${system}"!`);
 				}
 
-				console.log(`${interaction.user.username} set system to "${selectedSystem.name}"`);
+				console.log(`${user.displayName} set system to "${selectedSystem.name}"`);
 
 				responses.push(`Zaktualizowano system na \`${selectedSystem.name}\`.`);
-			} else {
+			}
+			else {
 				await this.channelSettingsRepository.updateChannelSettings(interaction.guildId, interaction.channelId, {
-					system: null,
+					system: null
 				});
-				console.log(`${interaction.user.username} removed system`);
+				console.log(`${user.displayName} removed system`);
 
 				responses.push('Usunięto system.');
 			}
@@ -58,20 +62,21 @@ export class SesjaCommand implements Command {
 		if (responses.length) {
 			await interaction.reply({
 				content: responses.join('\n'),
-				ephemeral: true,
+				ephemeral: true
 			});
-		} else {
+		}
+		else {
 			const channel = await this.channelSettingsRepository.getChannelSettings(
 				interaction.guildId,
 				interaction.channelId
 			);
 
 			const systemName = channel?.system ? this.systems.get(channel.system)?.name : '-';
-			console.log(`${interaction.user.username} have system="${systemName}"`);
+			console.log(`${user.displayName} have system="${systemName}"`);
 
 			await interaction.reply({
 				content: `System: \`${systemName}\``,
-				ephemeral: true,
+				ephemeral: true
 			});
 		}
 	};

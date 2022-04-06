@@ -1,6 +1,12 @@
 import { DiceParser } from './ports/dice-parser';
 import { ColorResolvable } from 'discord.js';
 
+export interface TurlaczUser {
+	id: string;
+	displayName: string;
+	displayAvatar: string;
+}
+
 export interface Command {
 	data: any;
 

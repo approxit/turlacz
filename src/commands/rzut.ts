@@ -1,10 +1,11 @@
 import { CommandError, getChannelSystemOrThrow } from '../common';
-import { CommandInteraction, MessageEmbed, User } from 'discord.js';
+import { CommandInteraction, MessageEmbed } from 'discord.js';
 import { ChannelSettingsRepository } from '../ports/channel-settings-repository';
 import { UserSettingsRepository } from '../ports/user-settings-repository';
-import { Command, RollResult, System } from '../types';
+import { Command, RollResult, System, TurlaczUser } from '../types';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { UserSettings } from '../models/user-settings';
+import { getTurlaczUser } from './utils';
 
 export class RzutCommand implements Command {
 	public data = new SlashCommandBuilder()
@@ -35,13 +36,14 @@ export class RzutCommand implements Command {
 			interaction.guildId,
 			interaction.channelId
 		);
+		const user = getTurlaczUser(interaction);
 
 		await interaction.reply({
 			embeds: [
 				await this.roll(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					system,
 					interaction.options.getString('formuła', true),
 					interaction.options.getString('komentarz') ?? undefined
@@ -53,7 +55,7 @@ export class RzutCommand implements Command {
 	roll = async (
 		guildId: string,
 		channelId: string,
-		user: User,
+		user: TurlaczUser,
 		systemName: string,
 		formula: string,
 		comment?: string
@@ -69,7 +71,7 @@ export class RzutCommand implements Command {
 			rollResult = system.parseFormulaAndRoll(formula);
 		}
 		catch (err) {
-			console.log(`Roll for "${user.username}" with "${formula}" failed with error "${err}"!`);
+			console.log(`Roll for "${user.displayName}" with "${formula}" failed with error "${err}"!`);
 
 			throw new CommandError(`Formuła \`${formula}\` napotkała błąd!\n\`\`\`${err}\`\`\``);
 		}
@@ -77,11 +79,11 @@ export class RzutCommand implements Command {
 		await this.saveDiceOptionsForLater(guildId, channelId, user, formula, comment);
 		const userSettings = await this.userSettingsRepository.getUserSettings(guildId, channelId, user);
 
-		console.log(`Roll for "${user.username}" with "${formula} = ${rollResult.sum}"`);
+		console.log(`Roll for "${user.displayName}" with "${formula} = ${rollResult.sum}"`);
 
 		const embed = new MessageEmbed();
 		embed.setAuthor({
-			name: this.getRollAuthor(userSettings, user),
+			name: this.getRollAuthor(userSettings, user)
 		});
 		embed.setThumbnail(this.getRollAvatar(userSettings, user));
 
@@ -109,18 +111,18 @@ export class RzutCommand implements Command {
 		return embed;
 	};
 
-	private getRollAuthor = (userSettings: UserSettings | null, user: User): string => {
-		const nick = userSettings?.nick ?? user.username;
+	private getRollAuthor = (userSettings: UserSettings | null, user: TurlaczUser): string => {
+		const nick = userSettings?.nick ?? user.displayName;
 		return `${nick} rzuca kością!`;
 	};
 
-	private getRollAvatar = (userSettings: UserSettings | null, user: User): string =>
-		userSettings?.image ?? user.displayAvatarURL();
+	private getRollAvatar = (userSettings: UserSettings | null, user: TurlaczUser): string =>
+		userSettings?.image ?? user.displayAvatar;
 
 	private saveDiceOptionsForLater = async (
 		guildId: string,
 		channelId: string,
-		user: User,
+		user: TurlaczUser,
 		formula: string,
 		comment?: string
 	): Promise<void> => {

@@ -5,6 +5,7 @@ import { Command } from '../types';
 import { CommandInteraction } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { RzutCommand } from './rzut';
+import { getTurlaczUser } from './utils';
 
 export class PowtorzCommand implements Command {
 	public data = new SlashCommandBuilder()
@@ -29,17 +30,18 @@ export class PowtorzCommand implements Command {
 			interaction.guildId,
 			interaction.channelId
 		);
+		const user = getTurlaczUser(interaction);
 
 		const comment = interaction.options.getString('komentarz') ?? undefined;
 
 		const userSettings = await this.userSettingsRepository.getUserSettings(
 			interaction.guildId,
 			interaction.channelId,
-			interaction.user
+			user
 		);
 
 		if (!userSettings?.lastDiceOptions) {
-			console.log(`No previous rolls from "${interaction.user.username}"!`);
+			console.log(`No previous rolls from "${interaction.member.displayName}"!`);
 
 			throw new CommandError('Nie masz jeszcze wykonanych rzutów, wykonaj jakiś!');
 		}
@@ -54,7 +56,7 @@ export class PowtorzCommand implements Command {
 				await command.roll(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					system,
 					userSettings.lastDiceOptions.formula,
 					comment || userSettings.lastDiceOptions?.comment

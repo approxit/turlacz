@@ -2,6 +2,7 @@ import { UserSettingsRepository } from '../ports/user-settings-repository';
 import { Command } from '../types';
 import { CommandInteraction } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { getTurlaczUser } from './utils';
 
 export class UstawCommand implements Command {
 	public data = new SlashCommandBuilder()
@@ -21,30 +22,31 @@ export class UstawCommand implements Command {
 
 		const nick = interaction.options.getString('nick') ?? undefined;
 		const image = interaction.options.getString('obrazek') ?? undefined;
+		const user = getTurlaczUser(interaction);
 
 		if (nick !== undefined) {
 			if (nick !== '-') {
 				await this.userSettingsRepository.updateUserSettings(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					{
 						nick,
 					}
 				);
-				console.log(`${interaction.user.username} set nick to "${nick}"`);
+				console.log(`${user.displayName} set nick to "${nick}"`);
 
 				responses.push(`Zaktualizowano nick na \`${nick}\`.`);
 			} else {
 				await this.userSettingsRepository.updateUserSettings(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					{
 						nick: undefined,
 					}
 				);
-				console.log(`${interaction.user.username} removed nick`);
+				console.log(`${user.displayName} removed nick`);
 
 				responses.push('Usunięto nick.');
 			}
@@ -55,24 +57,24 @@ export class UstawCommand implements Command {
 				await this.userSettingsRepository.updateUserSettings(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					{
 						image,
 					}
 				);
-				console.log(`${interaction.user.username} set image to "${image}"`);
+				console.log(`${user.displayName} set image to "${image}"`);
 
 				responses.push(`Zaktualizowano obrazek na \`${image}\`.`);
 			} else {
 				await this.userSettingsRepository.updateUserSettings(
 					interaction.guildId,
 					interaction.channelId,
-					interaction.user,
+					user,
 					{
 						image: undefined,
 					}
 				);
-				console.log(`${interaction.user.username} removed image`);
+				console.log(`${user.displayName} removed image`);
 
 				responses.push('Usunięto obrazek.');
 			}
@@ -84,15 +86,15 @@ export class UstawCommand implements Command {
 				ephemeral: true,
 			});
 		} else {
-			const user = await this.userSettingsRepository.getUserSettings(
+			const savedUser = await this.userSettingsRepository.getUserSettings(
 				interaction.guildId,
 				interaction.channelId,
-				interaction.user
+				user
 			);
-			const savedNick = user?.nick ?? '-';
-			const savedImage = user?.image ?? '-';
+			const savedNick = savedUser?.nick ?? '-';
+			const savedImage = savedUser?.image ?? '-';
 
-			console.log(`${interaction.user.username} have nick="${savedNick}" image="${savedImage}"`);
+			console.log(`${user.displayName} have nick="${savedNick}" image="${savedImage}"`);
 
 			await interaction.reply({
 				content: `Nick: \`${savedNick}\`\nObrazek: \`${savedImage}\``,

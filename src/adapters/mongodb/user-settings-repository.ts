@@ -1,36 +1,38 @@
 import { Collection, MongoClient } from 'mongodb';
 import { UserSettingsRepository } from '../../ports/user-settings-repository';
 import { UserSettings } from '../../models/user-settings';
-import { User } from 'discord.js';
+import { TurlaczUser } from '../../types';
 
 const USERS_COLLECTION_NAME = 'users';
 
 export class MongoDbUserSettingsRepository implements UserSettingsRepository {
-	constructor(private mongoClient: MongoClient) {}
+	constructor(private mongoClient: MongoClient) {
+	}
 
 	private withConnection = async (fn: (collection: Collection) => Promise<any>): Promise<any> => {
 		this.mongoClient.connect();
 		const collection = this.mongoClient.db().collection<UserSettings>(USERS_COLLECTION_NAME);
 		try {
 			return await fn(collection);
-		} finally {
+		}
+		finally {
 			this.mongoClient.close();
 		}
 	};
 
-	getUserSettings = async (guildId: string, channelId: string, user: User): Promise<UserSettings | null> =>
+	getUserSettings = async (guildId: string, channelId: string, user: TurlaczUser): Promise<UserSettings | null> =>
 		await this.withConnection(
 			async collection =>
 				await collection.findOne(
 					{
 						guildId,
 						channelId,
-						userId: user.id,
+						userId: user.id
 					},
 					{
 						projection: {
-							_id: 0,
-						},
+							_id: 0
+						}
 					}
 				)
 		);
@@ -38,7 +40,7 @@ export class MongoDbUserSettingsRepository implements UserSettingsRepository {
 	updateUserSettings = async (
 		guildId: string,
 		channelId: string,
-		user: User,
+		user: TurlaczUser,
 		userFieldsToUpdate: Partial<UserSettings>
 	): Promise<void> => {
 		await this.withConnection(
@@ -47,13 +49,13 @@ export class MongoDbUserSettingsRepository implements UserSettingsRepository {
 					{
 						guildId,
 						channelId,
-						userId: user.id,
+						userId: user.id
 					},
 					{
-						$set: userFieldsToUpdate,
+						$set: userFieldsToUpdate
 					},
 					{
-						upsert: true,
+						upsert: true
 					}
 				)
 		);
@@ -64,7 +66,7 @@ export class MongoDbUserSettingsRepository implements UserSettingsRepository {
 			async collection =>
 				await collection.deleteOne({
 					guildId,
-					channelId,
+					channelId
 				})
 		);
 	};

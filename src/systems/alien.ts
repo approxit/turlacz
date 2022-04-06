@@ -102,8 +102,11 @@ export class AlienSystem extends GenericSystem {
 	}
 
 	getRollResultColor(formula: string, rollResult: RollResult): ColorResolvable | null {
-		if (rollResult.flags !== null) {
-			return rollResult.flags ? CRITICAL_UP_COLOR : CRITICAL_DOWN_COLOR
+		if (1 < rollResult.sum) {
+			return CRITICAL_UP_COLOR;
+		}
+		if (rollResult.flags === false) {
+			return CRITICAL_DOWN_COLOR;
 		}
 
 		return super.getRollResultColor(formula, rollResult);

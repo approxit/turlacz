@@ -13,7 +13,7 @@ RUN npm ci \
 FROM node:16-alpine AS final
 
 WORKDIR /app
-CMD node --experimental-modules --es-module-specifier-resolution=node index.js
+CMD ["node", "--experimental-modules", "--es-module-specifier-resolution=node", "index.js"]
 
 COPY --from=build /app/package.json .
 COPY --from=build /app/package-lock.json .
