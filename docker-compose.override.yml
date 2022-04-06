@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  bot:
+    image: ghcr.io/approxit/turlacz:local
+    build:
+      target: build
+    command: npm start
+    env_file:
+      - local.env
+    volumes:
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./src/:/app/src/
+
+  db:
+    ports:
+      - "27017:27017"
